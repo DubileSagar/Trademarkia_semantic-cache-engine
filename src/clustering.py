@@ -70,17 +70,13 @@ def get_cluster_for_query(q_vec, clust_data):
     q_pca = pca.transform(q_vec.reshape(1, -1))
     dists = np.linalg.norm(centers - q_pca, axis=1)
 
-    exp = 2.0 / (M - 1)
+    top_c = int(np.argmin(dists))
 
-    if np.any(dists == 0):
-        probs = np.zeros(len(dists))
-        probs[np.argmin(dists)] = 1.0
-        return probs, int(np.argmin(dists))
-
+    # Build a peaked probability vector centered on the nearest cluster
     probs = np.zeros(len(dists))
-    for i in range(len(dists)):
-        probs[i] = 1.0 / np.sum((dists[i] / dists) ** exp)
-    return probs, int(np.argmax(probs))
+    probs[top_c] = 1.0
+
+    return probs, top_c
 
 
 def analyze_clusters(texts, top_c, probs, labels, cat_names):
