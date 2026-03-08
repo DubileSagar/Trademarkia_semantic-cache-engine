@@ -1,5 +1,4 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // Elements
     const form = document.getElementById('search-form');
     const input = document.getElementById('search-input');
     const resultsContainer = document.getElementById('results-container');
@@ -16,7 +15,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const jsonContainer = document.getElementById('json-container');
     const jsonOutput = document.getElementById('json-output');
 
-    // Stats elements
     const statHitRate = document.getElementById('stat-hit-rate');
     const statEntries = document.getElementById('stat-entries');
     const statHits = document.getElementById('stat-hits');
@@ -29,24 +27,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const statsJsonContainer = document.getElementById('stats-json-container');
     const statsJsonOutput = document.getElementById('stats-json-output');
 
-    // Controls
     const thresholdSlider = document.getElementById('threshold-slider');
     const thresholdVal = document.getElementById('threshold-val');
     const flushBtn = document.getElementById('flush-btn');
 
-    // State
     const API_URL = 'http://127.0.0.1:8000';
-
-    // ─── INIT ───────────────────────────────────────────────
 
     fetchStats();
 
-    // Update threshold display live
     thresholdSlider.addEventListener('input', (e) => {
         thresholdVal.textContent = parseFloat(e.target.value).toFixed(2);
     });
 
-    // View Toggles
     viewUiBtn.addEventListener('click', () => {
         viewUiBtn.classList.add('active');
         viewJsonBtn.classList.remove('active');
@@ -77,29 +69,23 @@ document.addEventListener('DOMContentLoaded', () => {
         statsJsonContainer.classList.remove('hidden');
     });
 
-    // ─── API CALLS ───────────────────────────────────────────
-
     async function fetchStats() {
         try {
             const res = await fetch(`${API_URL}/cache/stats`);
             const data = await res.json();
 
-            // Animate number updates
             statHitRate.textContent = `${(data.hit_rate * 100).toFixed(1)}%`;
             statEntries.textContent = data.total_entries;
             statHits.textContent = data.hit_count;
             statMisses.textContent = data.miss_count;
             statTime.textContent = `${data.avg_lookup_ms} ms`;
 
-            // Update JSON view payload
             statsJsonOutput.textContent = JSON.stringify(data, null, 2);
 
-            // Sync slider with server if needed
             if (data.threshold !== parseFloat(thresholdSlider.value)) {
                 thresholdSlider.value = data.threshold;
                 thresholdVal.textContent = data.threshold.toFixed(2);
             }
-
         } catch (error) {
             console.error('Failed to fetch stats:', error);
         }
@@ -110,7 +96,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const query = input.value.trim();
         if (!query) return;
 
-        // UI Loading state
         searchSpan.classList.add('hidden');
         searchSpinner.classList.remove('hidden');
         metaBar.classList.add('hidden');
@@ -119,19 +104,17 @@ document.addEventListener('DOMContentLoaded', () => {
         let startTime = performance.now();
 
         try {
-            const currentThreshold = parseFloat(thresholdSlider.value);
+            const threshold = parseFloat(thresholdSlider.value);
 
             const res = await fetch(`${API_URL}/query`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ query: query, threshold: currentThreshold })
+                body: JSON.stringify({ query, threshold })
             });
 
             const data = await res.json();
-            const endTime = performance.now();
-
-            renderResults(data, endTime - startTime);
-            fetchStats(); // Update dashboard
+            renderResults(data, performance.now() - startTime);
+            fetchStats();
 
         } catch (error) {
             console.error('Search failed:', error);
@@ -156,7 +139,6 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             await fetch(`${API_URL}/cache`, { method: 'DELETE' });
             await fetchStats();
-            // Clear results
             resultsContainer.innerHTML = `
                 <div class="empty-state">
                     <div class="animated-icon"><i class="fa-solid fa-satellite-dish"></i></div>
@@ -174,10 +156,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // ─── RENDERING ───────────────────────────────────────────
-
     function renderResults(data, durationMs) {
-        // Show meta info
         metaBar.classList.remove('hidden');
         metaTime.textContent = `${durationMs.toFixed(0)} ms`;
         metaCluster.textContent = data.dominant_cluster;
@@ -188,15 +167,7 @@ document.addEventListener('DOMContentLoaded', () => {
             cacheBadge.classList.add('hidden');
         }
 
-        // Format and inject raw JSON response
         jsonOutput.textContent = JSON.stringify(data, null, 2);
-
-        // Parse the raw text result string into discrete items.
-        // The Python script returns a formatted string we can parse
-        // It looks like:
-        // Top 5 semantic matches:
-        // 1. [category.name] (similarity: 0.942)
-        //    Content...
 
         const text = data.result;
 
@@ -211,49 +182,43 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // Very basic parser for the assignment's output text format
         const lines = text.split('\n');
         let html = '';
-        let currentItem = null;
+        let current = null;
 
         for (let i = 1; i < lines.length; i++) {
             const line = lines[i];
             if (!line.trim()) continue;
 
-            // Check if it's a header line: "1. [comp.graphics] (similarity: 0.618)"
             const match = line.match(/^\d+\.\s+\[(.*?)\]\s+\(similarity:\s+(.*?)\)/);
 
             if (match) {
-                if (currentItem) html += renderCard(currentItem.category, currentItem.sim, currentItem.text, currentItem.index);
-                currentItem = { category: match[1], sim: parseFloat(match[2]), text: '', index: i };
-            } else if (currentItem) {
-                currentItem.text += line.trim() + ' ';
+                if (current) html += renderCard(current.category, current.sim, current.text, current.index);
+                current = { category: match[1], sim: parseFloat(match[2]), text: '', index: i };
+            } else if (current) {
+                current.text += line.trim() + ' ';
             }
         }
-        if (currentItem) html += renderCard(currentItem.category, currentItem.sim, currentItem.text, currentItem.index);
+        if (current) html += renderCard(current.category, current.sim, current.text, current.index);
 
         resultsContainer.innerHTML = html;
 
-        // Trigger animations for bars
         setTimeout(() => {
-            const fills = document.querySelectorAll('.sim-bar-fill');
-            fills.forEach(fill => {
+            document.querySelectorAll('.sim-bar-fill').forEach(fill => {
                 fill.style.width = fill.getAttribute('data-width');
             });
         }, 50);
     }
 
     function renderCard(category, similarity, text, index) {
-        // Color hash based on category name for consistent unique colors
         let hash = 0;
         for (let i = 0; i < category.length; i++) {
             hash = category.charCodeAt(i) + ((hash << 5) - hash);
         }
         const hue = Math.abs(hash) % 360;
         const catColor = `hsl(${hue}, 70%, 65%)`;
-
         const simPercent = Math.round(similarity * 100);
-        const delay = index * 0.1; // Stagger animation
+        const delay = index * 0.1;
 
         return `
         <div class="result-card" style="animation-delay: ${delay}s">

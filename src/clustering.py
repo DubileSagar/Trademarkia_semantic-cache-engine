@@ -53,7 +53,7 @@ def save_clustering_results(cntr, u, pca):
     }
     with open(CACHE_PATH, 'wb') as f:
         pickle.dump(blob, f)
-    print(f"saved clustering to {CACHE_PATH}")
+    print(f"saved to {CACHE_PATH}")
 
 
 def load_clustering_results():
@@ -66,16 +66,11 @@ def load_clustering_results():
 def get_cluster_for_query(q_vec, clust_data):
     pca = clust_data["pca_model"]
     centers = clust_data["centroids"]
-
     q_pca = pca.transform(q_vec.reshape(1, -1))
     dists = np.linalg.norm(centers - q_pca, axis=1)
-
     top_c = int(np.argmin(dists))
-
-    # Build a peaked probability vector centered on the nearest cluster
     probs = np.zeros(len(dists))
     probs[top_c] = 1.0
-
     return probs, top_c
 
 
@@ -85,7 +80,6 @@ def analyze_clusters(texts, top_c, probs, labels, cat_names):
     print("CLUSTER BOUNDARY ANALYSIS")
     print("="*60)
 
-    # core docs (high certainty)
     print("\n1. Core documents (>85% membership)")
     shown = 0
     for c in range(nc):
@@ -98,7 +92,6 @@ def analyze_clusters(texts, top_c, probs, labels, cat_names):
             if shown >= 3:
                 break
 
-    # boundary docs (ambiguous)
     print("\n2. Boundary documents (split membership)")
     sorted_probs = np.sort(probs, axis=1)
     gaps = sorted_probs[:, -1] - sorted_probs[:, -2]
@@ -109,7 +102,6 @@ def analyze_clusters(texts, top_c, probs, labels, cat_names):
         print(f"  c{top2[0]}={row[top2[0]]:.2f} | c{top2[1]}={row[top2[1]]:.2f}")
         print(f"    {snip}... [{cat_names[labels[idx]]}]\n")
 
-    # noisy docs (flat distribution)
     print("3. Uncertain documents (high entropy)")
     ent = -np.sum(probs * np.log(probs + 1e-10), axis=1)
     for idx in np.argsort(ent)[::-1][:2]:
