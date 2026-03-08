@@ -1,0 +1,23 @@
+# Core ML
+sentence-transformers
+numpy
+scikit-learn
+
+# Vector store
+chromadb
+
+# Fuzzy clustering
+scikit-fuzzy
+
+# API
+fastapi
+uvicorn
+pydantic
+
+# Data & utilities
+pandas
+nltk
+tqdm
+matplotlib
+seaborn
+jupyter

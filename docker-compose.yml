@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  semantic-search:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      # Persist the vector store and clustering data outside the container
+      - ./vector_store:/app/vector_store
+    environment:
+      - PYTHONUNBUFFERED=1
+    restart: unless-stopped

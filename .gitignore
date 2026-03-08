@@ -1,0 +1,6 @@
+venv/
+vector_store/
+__pycache__/
+*.pyc
+.env
+*.npy

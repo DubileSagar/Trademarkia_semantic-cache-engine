@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trademarkia Neural Search</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+    <div class="background-animation">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+        <div class="blob blob-3"></div>
+    </div>
+
+    <div class="app-container">
+        <!-- Sidebar Dashboard -->
+        <aside class="dashboard glass-panel">
+            <div class="brand">
+                <div class="logo-icon"><i class="fa-solid fa-brain"></i></div>
+                <div>
+                    <h1>Trademarkia</h1>
+                    <span class="subtitle">Neural Search Engine</span>
+                </div>
+            </div>
+
+            <div class="stats-section">
+                <div class="stats-header-row">
+                    <h3><i class="fa-solid fa-chart-line"></i> Cache Analytics</h3>
+                    <div class="view-toggle stats-toggle">
+                        <button id="stats-ui-btn" class="toggle-btn active">UI</button>
+                        <button id="stats-json-btn" class="toggle-btn">JSON</button>
+                    </div>
+                </div>
+
+                <div class="stat-grid">
+                    <div class="stat-card">
+                        <span class="stat-label">Hit Rate</span>
+                        <div class="stat-value highlight" id="stat-hit-rate">0%</div>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-label">Entries</span>
+                        <div class="stat-value" id="stat-entries">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-label">Hits</span>
+                        <div class="stat-value text-green" id="stat-hits">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-label">Misses</span>
+                        <div class="stat-value text-red" id="stat-misses">0</div>
+                    </div>
+                </div>
+
+                <div class="time-metric" id="stats-time-metric">
+                    <span class="stat-label">Avg. Response Time</span>
+                    <div class="stat-value" id="stat-time">0 ms</div>
+                </div>
+
+                <div class="json-container hidden" id="stats-json-container" style="margin-top: 16px;">
+                    <div class="json-header">GET /cache/stats</div>
+                    <pre><code id="stats-json-output"></code></pre>
+                </div>
+            </div>
+
+            <div class="controls-section">
+                <h3><i class="fa-solid fa-sliders"></i> Engine Controls</h3>
+
+                <div class="control-group">
+                    <label for="threshold-slider">
+                        Semantic Strictness
+                        <span id="threshold-val">0.85</span>
+                    </label>
+                    <input type="range" id="threshold-slider" min="0" max="1" step="0.01" value="0.85">
+                    <div class="slider-labels">
+                        <span>Permissive</span>
+                        <span>Strict</span>
+                    </div>
+                </div>
+
+                <button id="flush-btn" class="btn btn-danger">
+                    <i class="fa-solid fa-trash-can"></i> Flush Cache Data
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Search View -->
+        <main class="search-view">
+            <header class="search-header">
+                <form id="search-form" class="search-box glass-panel focused-glow">
+                    <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                    <input type="text" id="search-input"
+                        placeholder="What are you looking for today? (e.g. Best GPU for gaming, space exploration...)"
+                        required autocomplete="off">
+                    <button type="submit" class="btn btn-primary" id="search-btn">
+                        <span>Search</span>
+                        <div class="spinner hidden" id="search-spinner"></div>
+                    </button>
+                </form>
+
+                <div id="search-meta" class="search-meta hidden">
+                    <div class="meta-tag model-time">
+                        <i class="fa-solid fa-stopwatch"></i> <span id="meta-time"></span>
+                    </div>
+                    <div class="meta-tag cluster-tag" id="meta-cluster">
+                        <i class="fa-solid fa-circle-nodes"></i> Cluster <span id="meta-cluster-id"></span>
+                    </div>
+                    <div id="cache-badge" class="cache-badge hidden">
+                        <i class="fa-solid fa-bolt"></i> CACHE HIT
+                    </div>
+
+                    <div class="view-toggle">
+                        <button id="view-ui-btn" class="toggle-btn active"><i class="fa-solid fa-layer-group"></i>
+                            UI</button>
+                        <button id="view-json-btn" class="toggle-btn"><i class="fa-solid fa-code"></i> JSON</button>
+                    </div>
+                </div>
+            </header>
+
+            <section class="results-container" id="results-container">
+                <div class="empty-state">
+                    <div class="animated-icon">
+                        <i class="fa-solid fa-satellite-dish"></i>
+                    </div>
+                    <h2>Awaiting Query</h2>
+                    <p>Enter a query above. The AI engine will convert it to a 384-dimensional vector and perform a
+                        cosine similarity search across the cluster-bucketed space.</p>
+                </div>
+            </section>
+
+            <section class="json-container hidden" id="json-container">
+                <div class="json-header">Raw API Response</div>
+                <pre><code id="json-output"></code></pre>
+            </section>
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="/static/app.js"></script>
+</body>
+
+</html>
