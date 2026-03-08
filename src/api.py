@@ -29,6 +29,7 @@ class CacheStats(BaseModel):
     hit_count: int
     miss_count: int
     hit_rate: float
+    avg_lookup_ms: float = 0.0
 
 class FlushResponse(BaseModel):
     message: str
@@ -96,7 +97,7 @@ def do_search(q, q_vec):
     for i, (doc, dist, meta) in enumerate(zip(docs, res["distances"][0], res["metadatas"][0]), 1):
         sim = 1 - dist
         snippet = doc[:200].replace('\n', ' ')
-        parts.append(f"{i}. [{meta['category']}] (sim: {sim:.3f})\n   {snippet}...")
+        parts.append(f"{i}. [{meta['category']}] (similarity: {sim:.3f})\n   {snippet}...")
     return "\n".join(parts)
 
 
@@ -152,7 +153,8 @@ async def cache_stats():
         total_entries=s["total_entries"],
         hit_count=s["hit_count"],
         miss_count=s["miss_count"],
-        hit_rate=s["hit_rate"]
+        hit_rate=s["hit_rate"],
+        avg_lookup_ms=s.get("avg_lookup_ms", 0.0)
     )
 
 @app.delete("/cache")
