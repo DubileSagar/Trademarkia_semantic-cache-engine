@@ -41,7 +41,6 @@ POST /query
 
 ## Design Decisions
 
-> *"Your design decisions and how you justify them matter as much as the code."*
 
 **Why `all-MiniLM-L6-v2`?**
 Purpose-built for semantic similarity. 384 dims vs 768 (BERT) or 1536 (Ada) — smaller vectors mean faster dot-product comparisons inside the cache on every request.
